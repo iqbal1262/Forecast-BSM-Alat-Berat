@@ -1,0 +1,12 @@
+# Folder Virtual Environment
+venv/
+
+# File data Excel
+*.xlsx
+
+# File cache Python
+__pycache__/
+*.pyc
+
+# File sistem
+.DS_Store

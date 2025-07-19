@@ -37,7 +37,6 @@ def format_dataframe_for_display(df):
     return df_display
 
 # --- DATA SOURCE UNTUK HALAMAN REVISI ---
-# --- GANTI DENGAN LINK BARU ANDA ---
 SPREADSHEET_ID_REVISI = "1WVCXjz8WYBmyFL0j6TRvTAQvB4j3zO8fxCxeAgCtx1M" 
 TAB_ID_AKTUAL_REVISI = "542042387"
 TAB_ID_TRAIN_REVISI = "1217230565"
@@ -61,17 +60,26 @@ show_train = st.sidebar.checkbox("2. Data Hasil Training (Fit)", value=True, key
 show_test = st.sidebar.checkbox("3. Prediksi Data Test", value=True, key="test_revisi")
 show_forecast = st.sidebar.checkbox("4. Forecast Masa Depan", value=True, key="forecast_revisi")
 
-# --- ANALISIS & METRIK PERFORMA TEST ---
+# --- ANALISIS & METRIK PERFORMA TEST (UPDATED) ---
 st.subheader("Performa pada Data Test")
 if df_test is not None and df_aktual is not None:
     df_error_test = pd.concat([df_aktual['observed'], df_test['prediksi_inti']], axis=1).dropna()
     df_error_test['error'] = (df_error_test['observed'] - df_error_test['prediksi_inti']).abs()
+    
+    # Hitung metrik
     mae = df_error_test['error'].mean()
     max_error_date = df_error_test['error'].idxmax()
     max_error_value = df_error_test['error'].max()
-    col1, col2 = st.columns(2)
-    col1.metric(label="Rata-rata Error (MAE)", value=f"Rp {mae:,.0f}")
-    col2.metric(label="Error Tertinggi Terjadi Pada", value=max_error_date.strftime('%d %B %Y'), help=f"Selisih sebesar Rp {max_error_value:,.0f}")
+
+    # Hitung MAPE, hindari pembagian dengan nol
+    non_zero_actuals = df_error_test[df_error_test['observed'] != 0]
+    mape = (np.mean(np.abs(non_zero_actuals['error']) / non_zero_actuals['observed'])) * 100
+
+    col1, col2, col3 = st.columns(3)
+
+    col1.metric(label="Rata-rata Error (MAPE)", value=f"{mape:.2f}%")
+    col2.metric(label="Rata-rata Error (MAE)", value=f"Rp {mae:,.0f}")
+    col3.metric(label="Error Tertinggi Terjadi Pada", value=max_error_date.strftime('%d %B %Y'), help=f"Selisih sebesar Rp {max_error_value:,.0f}")
 else:
     st.info("Data test atau data aktual tidak ditemukan untuk menghitung metrik performa.")
 
